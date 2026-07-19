@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terrae — Lo que la tierra esconde</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --walnut: #4a3324;
+    --walnut-light: #6b4a34;
+    --emerald: #0b5f42;
+    --emerald-bright: #14805a;
+    --anthracite: #232320;
+    --gold: #b6924f;
+    --gold-soft: #c9ab74;
+    --paper: #ece6d9;
+    --paper-dim: #ddd4c1;
+    --bg: #14140f;
+    --bg-alt: #1b1b14;
+    --text: #ece6d9;
+    --text-dim: #a89f8c;
+    --line: rgba(182,146,79,0.22);
+    --ease: cubic-bezier(.22,1,.36,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Jost',sans-serif;
+    font-weight:300;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--gold); color:var(--anthracite);}
+  h1,h2,h3,.serif{font-family:'Cormorant Garamond',serif;font-weight:400;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  a{color:inherit;text-decoration:none;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+  }
+
+  /* ---------- NAV ---------- */
+  nav{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 5vw;
+    mix-blend-mode:difference;
+    transition:padding .4s var(--ease);
+  }
+  nav .wordmark{font-family:'Cormorant Garamond',serif; font-size:1.3rem; letter-spacing:0.35em; text-transform:uppercase; color:var(--paper);}
+  nav .progress-dot{
+    width:6px;height:6px;border-radius:50%;background:var(--gold-soft);
+    box-shadow:0 0 0 1px rgba(255,255,255,0.3);
+  }
+  .toc-toggle{
+    background:none;border:1px solid var(--paper); color:var(--paper);
+    width:36px;height:36px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer; font-size:0.7rem; letter-spacing:0.05em;
+  }
+  #toc{
+    position:fixed; inset:0; z-index:99; background:rgba(20,20,15,0.97);
+    backdrop-filter:blur(10px);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .5s var(--ease);
+  }
+  #toc.open{opacity:1; pointer-events:all;}
+  #toc ol{list-style:none; columns:2; column-gap:60px; max-width:640px;}
+  #toc li{margin-bottom:16px;}
+  #toc a{font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:var(--paper-dim); transition:color .3s;}
+  #toc a:hover{color:var(--gold-soft);}
+  #toc .toc-num{font-family:'JetBrains Mono',monospace; font-size:0.65rem; color:var(--gold); margin-right:10px;}
+
+  /* ---------- SECTION SCAFFOLD ---------- */
+  section{
+    position:relative;
+    min-height:100vh;
+    padding:140px 8vw 100px;
+    display:flex; flex-direction:column; justify-content:center;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace; font-size:0.7rem; letter-spacing:0.25em;
+    text-transform:uppercase; color:var(--gold-soft); margin-bottom:18px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .eyebrow::before{content:''; width:28px; height:1px; background:var(--gold-soft);}
+  .reveal{opacity:0; transform:translateY(28px); transition:opacity 1s var(--ease), transform 1s var(--ease);}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  /* ---------- HERO ---------- */
+  #hero{
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(11,95,66,0.35), transparent 55%),
+      radial-gradient(ellipse at 80% 80%, rgba(182,146,79,0.12), transparent 50%),
+      linear-gradient(180deg, #14140f 0%, #1a1a13 100%);
+    justify-content:center; align-items:center; text-align:center;
+    padding-top:0;
+  }
+  .soil-texture{
+    position:absolute; inset:0; opacity:0.5; pointer-events:none;
+    background-image:
+      repeating-linear-gradient(115deg, rgba(74,51,36,0.15) 0px, transparent 2px, transparent 40px),
+      repeating-linear-gradient(25deg, rgba(74,51,36,0.1) 0px, transparent 1px, transparent 55px);
+  }
+  .facet{
+    position:absolute; width:260px; height:260px;
+    background:linear-gradient(135deg, rgba(11,95,66,0.5), rgba(20,128,90,0.15) 60%, transparent);
+    clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    filter:blur(2px);
+    animation:facetfloat 12s var(--ease) infinite alternate;
+  }
+  @keyframes facetfloat{ from{transform:translateY(0) rotate(0deg);} to{transform:translateY(-24px) rotate(6deg);} }
+  .hero-mark{
+    width:64px; height:64px; margin:0 auto 30px;
+    border:1px solid var(--gold); transform:rotate(45deg);
+    display:flex; align-items:center; justify-content:center;
+    animation:markin 1.4s var(--ease) both;
+  }
+  .hero-mark span{
+    display:block; width:16px; height:16px; background:var(--emerald-bright);
+    box-shadow:0 0 22px 4px rgba(20,128,90,0.6);
+  }
+  @keyframes markin{from{opacity:0; transform:rotate(45deg) scale(0.4);} to{opacity:1; transform:rotate(45deg) scale(1);}}
+  .hero h1{
+    font-size:clamp(2.6rem, 8vw, 6.4rem); letter-spacing:0.02em; line-height:1;
+    color:var(--paper); animation:fadeup 1.2s .2s var(--ease) both;
+  }
+  .hero .tagline{
+    font-family:'Cormorant Garamond',serif; font-style:italic; font-size:clamp(1rem,2vw,1.4rem);
+    color:var(--gold-soft); margin-top:22px; letter-spacing:0.02em;
+    animation:fadeup 1.2s .4s var(--ease) both;
+  }
+  .hero .piece-id{
+    margin-top:40px; font-family:'JetBrains Mono',monospace; font-size:0.72rem;
+    color:var(--text-dim); letter-spacing:0.1em;
+    animation:fadeup 1.2s .55s var(--ease) both;
+  }
+  @keyframes fadeup{from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);}}
+  .cta-btn{
+    margin-top:46px; display:inline-flex; align-items:center; gap:14px;
+    padding:16px 34px; border:1px solid var(--gold); border-radius:999px;
+    font-size:0.85rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--paper);
+    cursor:pointer; background:transparent; transition:all .5s var(--ease);
+    animation:fadeup 1.2s .7s var(--ease) both;
+  }
+  .cta-btn:hover{background:var(--gold); color:var(--anthracite); letter-spacing:0.16em;}
+  .scroll-cue{
+    position:absolute; bottom:36px; left:50%; transform:translateX(-50%);
+    font-family:'JetBrains Mono',monospace; font-size:0.65rem; letter-spacing:0.2em; color:var(--text-dim);
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+  .scroll-cue .line{width:1px; height:34px; background:linear-gradient(var(--gold), transparent); animation:scrolldown 1.8s infinite;}
+  @keyframes scrolldown{0%{transform:scaleY(0); transform-origin:top;}50%{transform:scaleY(1); transform-origin:top;}50.01%{transform-origin:bottom;}100%{transform:scaleY(0); transform-origin:bottom;}}
+
+  /* ---------- GENERIC LAYOUT PATTERNS ---------- */
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:70px; align-items:center;}
+  @media(max-width:860px){.grid-2{grid-template-columns:1fr; gap:40px;}}
+  h2.title{font-size:clamp(2rem,4.4vw,3.4rem); color:var(--paper); line-height:1.05; margin-bottom:22px;}
+  p.lede{font-size:1.05rem; line-height:1.75; color:var(--text-dim); max-width:52ch;}
+  .divider{width:100%; height:1px; background:var(--line); margin:36px 0;}
+
+  /* Map block */
+  .map-card{
+    position:relative; aspect-ratio:4/5; border:1px solid var(--line); border-radius:6px;
+    background:linear-gradient(160deg, #1c2620, #14140f 70%);
+    overflow:hidden; display:flex; align-items:center; justify-content:center;
+  }
+  .map-card svg{width:78%; height:auto; opacity:0.9;}
+  .pin{
+    position:absolute; width:10px; height:10px; border-radius:50%;
+    background:var(--gold); box-shadow:0 0 0 6px rgba(182,146,79,0.18);
+  }
+  .pin::after{
+    content:attr(data-label); position:absolute; top:16px; left:50%; transform:translateX(-50%);
+    font-family:'JetBrains Mono',monospace; font-size:0.6rem; letter-spacing:0.08em; color:var(--gold-soft);
+    white-space:nowrap;
+  }
+  .pin-pulse{animation:pulse 2.4s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(182,146,79,0.5);}70%{box-shadow:0 0 0 14px rgba(182,146,79,0);}100%{box-shadow:0 0 0 0 rgba(182,146,79,0);}}
+
+  .fact-row{display:flex; gap:30px; flex-wrap:wrap; margin-top:30px;}
+  .fact{border-left:1px solid var(--gold); padding-left:14px;}
+  .fact .num{font-family:'Cormorant Garamond',serif; font-size:1.6rem; color:var(--paper);}
+  .fact .lab{font-size:0.72rem; color:var(--text-dim); letter-spacing:0.05em; text-transform:uppercase;}
+
+  /* Gallery strip */
+  .strip{display:flex; gap:16px; overflow-x:auto; padding:30px 0 10px; scrollbar-width:thin;}
+  .strip::-webkit-scrollbar{height:5px;}
+  .strip::-webkit-scrollbar-thumb{background:var(--gold); border-radius:5px;}
+  .strip-item{
+    flex:0 0 240px; aspect-ratio:3/4; border-radius:4px; position:relative; overflow:hidden;
+    display:flex; align-items:flex-end; padding:16px;
+    font-family:'JetBrains Mono',monospace; font-size:0.65rem; letter-spacing:0.06em; color:var(--paper-dim);
+  }
+  .strip-item::before{content:''; position:absolute; inset:0; opacity:0.85;}
+  .strip-item span{position:relative; z-index:1; text-transform:uppercase;}
+  .si1::before{background:linear-gradient(160deg,#2b3a30,#14140f);}
+  .si2::before{background:linear-gradient(160deg,#3a2f22,#14140f);}
+  .si3::before{background:linear-gradient(160deg,#1e2d27,#14140f);}
+  .si4::before{background:linear-gradient(160deg,#332b1c,#14140f);}
+  .si5::before{background:linear-gradient(160deg,#233229,#14140f);}
+
+  /* Timeline */
+  .timeline{position:relative; margin-top:50px; padding-left:0;}
+  .timeline-track{position:relative; display:flex; overflow-x:auto; gap:0; padding-bottom:20px;}
+  .tl-step{flex:0 0 220px; position:relative; padding:30px 24px 0 0; border-top:1px solid var(--gold);}
+  .tl-step .tl-index{font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--gold-soft); position:absolute; top:-10px; left:0; background:var(--bg); padding-right:8px;}
+  .tl-step h4{font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:var(--paper); margin-bottom:8px;}
+  .tl-step p{font-size:0.85rem; color:var(--text-dim); line-height:1.6;}
+
+  /* Certificate */
+  .certificate{
+    border:1px solid var(--gold); border-radius:10px; padding:44px;
+    background:linear-gradient(160deg, rgba(182,146,79,0.06), transparent 60%);
+    position:relative;
+  }
+  .certificate::before{
+    content:''; position:absolute; inset:8px; border:1px solid rgba(182,146,79,0.25); border-radius:6px; pointer-events:none;
+  }
+  .cert-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px;}
+  .cert-id{font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--gold-soft);}
+  .cert-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px 40px;}
+  .cert-field{border-bottom:1px dashed var(--line); padding-bottom:10px;}
+  .cert-field .k{font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-dim);}
+  .cert-field .v{font-family:'Cormorant Garamond',serif; font-size:1.15rem; color:var(--paper); margin-top:4px;}
+  .hash-block{margin-top:26px; padding:16px; background:rgba(0,0,0,0.3); border-radius:6px; font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--emerald-bright); word-break:break-all;}
+  .cert-actions{margin-top:30px; display:flex; gap:16px; flex-wrap:wrap;}
+  .ghost-btn{border:1px solid var(--line); padding:12px 22px; border-radius:999px; font-size:0.78rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--paper-dim); cursor:pointer; background:none; transition:.3s;}
+  .ghost-btn:hover{border-color:var(--gold); color:var(--gold-soft);}
+
+  /* Traceability */
+  .trace-line{position:relative; margin-top:50px; padding-left:34px; border-left:1px solid var(--line);}
+  .trace-node{position:relative; padding-bottom:44px;}
+  .trace-node:last-child{padding-bottom:0;}
+  .trace-node::before{
+    content:''; position:absolute; left:-40px; top:2px; width:11px; height:11px; border-radius:50%;
+    background:var(--bg); border:2px solid var(--gold);
+  }
+  .trace-node.verified::before{background:var(--emerald-bright); border-color:var(--emerald-bright);}
+  .trace-node h4{font-family:'Cormorant Garamond',serif; font-size:1.25rem; color:var(--paper);}
+  .trace-meta{display:flex; gap:18px; flex-wrap:wrap; margin-top:6px; font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--text-dim);}
+
+  /* Blockchain */
+  .chain-card{border:1px solid var(--line); border-radius:8px; padding:34px; background:rgba(11,95,66,0.06);}
+  .chain-row{display:flex; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--line); font-size:0.85rem;}
+  .chain-row:last-child{border-bottom:none;}
+  .chain-row .k{color:var(--text-dim);}
+  .chain-row .v{font-family:'JetBrains Mono',monospace; color:var(--paper-dim);}
+  .verify-btn{
+    margin-top:28px; width:100%; padding:16px; border-radius:8px; border:1px solid var(--emerald-bright);
+    background:rgba(20,128,90,0.12); color:var(--emerald-bright); letter-spacing:0.1em; text-transform:uppercase;
+    font-size:0.8rem; cursor:pointer; transition:.4s; display:flex; align-items:center; justify-content:center; gap:10px;
+  }
+  .verify-btn:hover{background:rgba(20,128,90,0.25);}
+  .verify-btn.checked{background:var(--emerald-bright); color:#0a0f0c;}
+  .dot-status{width:8px; height:8px; border-radius:50%; background:var(--emerald-bright); animation:pulse 2s infinite;}
+
+  /* video card */
+  .video-card{position:relative; aspect-ratio:16/9; border-radius:8px; overflow:hidden; background:linear-gradient(160deg,#20261f,#14140f); display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid var(--line);}
+  .play-btn{width:64px; height:64px; border-radius:50%; border:1px solid var(--gold); display:flex; align-items:center; justify-content:center; transition:.3s;}
+  .video-card:hover .play-btn{background:var(--gold); transform:scale(1.06);}
+  .play-btn::after{content:''; width:0; height:0; border-top:9px solid transparent; border-bottom:9px solid transparent; border-left:14px solid var(--paper); margin-left:4px;}
+  .video-card:hover .play-btn::after{border-left-color:var(--anthracite);}
+  .video-caption{position:absolute; bottom:18px; left:18px; font-family:'JetBrains Mono',monospace; font-size:0.65rem; letter-spacing:0.08em; color:var(--text-dim);}
+
+  /* sensory */
+  .notes{display:flex; gap:40px; margin-top:34px; flex-wrap:wrap;}
+  .note-col .lab{font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold-soft); margin-bottom:10px;}
+  .note-col li{list-style:none; font-family:'Cormorant Garamond',serif; font-size:1.15rem; color:var(--paper-dim); margin-bottom:4px;}
+
+  /* care */
+  .care-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:26px; margin-top:20px;}
+  @media(max-width:700px){.care-grid{grid-template-columns:1fr;}}
+  .care-item{border:1px solid var(--line); border-radius:8px; padding:24px;}
+  .care-item h4{font-family:'Cormorant Garamond',serif; font-size:1.2rem; color:var(--paper); margin-bottom:8px;}
+  .care-item p{font-size:0.85rem; color:var(--text-dim); line-height:1.6;}
+
+  /* community */
+  #comunidad{text-align:center; align-items:center;}
+  #comunidad .title{max-width:16ch; margin-left:auto; margin-right:auto;}
+  .perk-row{display:flex; gap:50px; justify-content:center; margin-top:44px; flex-wrap:wrap;}
+  .perk{max-width:200px;}
+  .perk .glyph{width:40px; height:40px; margin:0 auto 14px; border:1px solid var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Cormorant Garamond',serif; color:var(--gold-soft);}
+  .perk p{font-size:0.82rem; color:var(--text-dim); line-height:1.5;}
+
+  footer{padding:60px 8vw 40px; text-align:center; color:var(--text-dim); font-size:0.78rem;}
+  footer .wordmark{font-family:'Cormorant Garamond',serif; letter-spacing:0.3em; color:var(--paper-dim); font-size:1rem; display:block; margin-bottom:16px;}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="wordmark">Terrae</span>
+  <button class="toc-toggle" id="tocBtn" aria-label="Navegar secciones">••</button>
+</nav>
+
+<div id="toc">
+  <ol>
+    <li><span class="toc-num">00</span><a href="#hero" class="tocLink">Inicio</a></li>
+    <li><span class="toc-num">01</span><a href="#historia" class="tocLink">Historia de la esmeralda</a></li>
+    <li><span class="toc-num">02</span><a href="#region" class="tocLink">Región de origen</a></li>
+    <li><span class="toc-num">03</span><a href="#mineral" class="tocLink">Del mineral a la joya</a></li>
+    <li><span class="toc-num">04</span><a href="#artesania" class="tocLink">Historia artesanal</a></li>
+    <li><span class="toc-num">05</span><a href="#certificado" class="tocLink">Certificado digital</a></li>
+    <li><span class="toc-num">06</span><a href="#trazabilidad" class="tocLink">Trazabilidad</a></li>
+    <li><span class="toc-num">07</span><a href="#blockchain" class="tocLink">Blockchain</a></li>
+    <li><span class="toc-num">08</span><a href="#mineria" class="tocLink">Minería responsable</a></li>
+    <li><span class="toc-num">09</span><a href="#sensorial" class="tocLink">Experiencia sensorial</a></li>
+    <li><span class="toc-num">10</span><a href="#conservacion" class="tocLink">Conservación</a></li>
+    <li><span class="toc-num">11</span><a href="#comunidad" class="tocLink">Comunidad Terrae</a></li>
+  </ol>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="soil-texture"></div>
+  <div class="facet" style="top:12%; left:8%;"></div>
+  <div class="facet" style="bottom:10%; right:10%; width:180px; height:180px; animation-delay:2s;"></div>
+  <div class="hero-mark"><span></span></div>
+  <h1 class="serif">Terrae</h1>
+  <p class="tagline">Lo que la tierra esconde, Terrae lo revela.</p>
+  <p class="piece-id mono">PIEZA N.º TR-2026-00842 · ESMERALDA COLOMBIANA</p>
+  <button class="cta-btn" onclick="document.getElementById('historia').scrollIntoView({behavior:'smooth'})">Descubrir mi joya →</button>
+  <div class="scroll-cue"><span>DESLIZA</span><span class="line"></span></div>
+</section>
+
+<!-- 01 HISTORIA -->
+<section id="historia">
+  <div class="grid-2">
+    <div class="reveal">
+      <div class="eyebrow">01 · Origen</div>
+      <h2 class="title serif">La historia de tu esmeralda</h2>
+      <p class="lede">Formada hace más de 30 millones de años, tu esmeralda nació en las vetas de calcita del Occidente boyacense, donde fluidos hidrotermales ricos en berilo se encontraron con lutitas negras cargadas de cromo y vanadio — la combinación geológica que solo ocurre en Colombia.</p>
+      <div class="fact-row">
+        <div class="fact"><div class="num serif">Muzo</div><div class="lab">Municipio · Boyacá</div></div>
+        <div class="fact"><div class="num serif">32M</div><div class="lab">Años de formación aprox.</div></div>
+        <div class="fact"><div class="num serif">Trifásica</div><div class="lab">Inclusión diagnóstica</div></div>
+      </div>
+      <div class="divider"></div>
+      <p class="lede" style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.05rem;">La inclusión trifásica — líquido salino, burbuja de CO₂ y cristal de halita — es la huella dactilar geológica que certifica el origen colombiano de tu piedra.</p>
+    </div>
+    <div class="reveal">
+      <div class="map-card">
+        <svg viewBox="0 0 200 320" fill="none">
+          <path d="M100 10 C60 40 40 90 55 140 C40 170 30 210 50 250 C60 280 90 300 100 310 C110 300 140 280 150 250 C170 210 160 170 145 140 C160 90 140 40 100 10 Z" stroke="#c9ab74" stroke-width="1" opacity="0.55"/>
+        </svg>
+        <div class="pin pin-pulse" data-label="MUZO" style="top:38%; left:44%;"></div>
+        <div class="pin" data-label="CHIVOR" style="top:33%; left:56%; opacity:0.55;"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 REGION -->
+<section id="region">
+  <div class="reveal">
+    <div class="eyebrow">02 · Territorio</div>
+    <h2 class="title serif">La región que la vio nacer</h2>
+    <p class="lede">Montañas verdes, niebla persistente y comunidades esmeralderas con más de cinco siglos de tradición. El Occidente de Boyacá no solo produce las esmeraldas más finas del mundo — sostiene una cultura entera alrededor de la piedra.</p>
+  </div>
+  <div class="strip reveal">
+    <div class="strip-item si1"><span>Cordillera Oriental</span></div>
+    <div class="strip-item si2"><span>Socavones de Muzo</span></div>
+    <div class="strip-item si3"><span>Río Minero</span></div>
+    <div class="strip-item si4"><span>Plaza de Chivor</span></div>
+    <div class="strip-item si5"><span>Guaqueros al atardecer</span></div>
+  </div>
+</section>
+
+<!-- 03 MINERAL A JOYA -->
+<section id="mineral">
+  <div class="reveal">
+    <div class="eyebrow">03 · Proceso</div>
+    <h2 class="title serif">Del mineral a la joya</h2>
+    <p class="lede">Nueve etapas, cada una documentada y verificada, transforman el cristal en bruto en la pieza que hoy sostienes.</p>
+  </div>
+  <div class="timeline-track reveal">
+    <div class="tl-step"><span class="tl-index">01</span><h4>Extracción responsable</h4><p>Minería artesanal certificada, trazable desde el socavón.</p></div>
+    <div class="tl-step"><span class="tl-index">02</span><h4>Selección</h4><p>Clasificación manual por gemólogos expertos en Muzo.</p></div>
+    <div class="tl-step"><span class="tl-index">03</span><h4>Clasificación</h4><p>Análisis de color, claridad y potencial de talla.</p></div>
+    <div class="tl-step"><span class="tl-index">04</span><h4>Diseño</h4><p>Bocetos que respetan la forma natural del cristal.</p></div>
+    <div class="tl-step"><span class="tl-index">05</span><h4>Tallado</h4><p>Corte de precisión para máximo brillo y proporción.</p></div>
+    <div class="tl-step"><span class="tl-index">06</span><h4>Montaje</h4><p>Engaste en plata 950 trabajada por orfebres colombianos.</p></div>
+    <div class="tl-step"><span class="tl-index">07</span><h4>Pulido &amp; rodinado</h4><p>Acabado final que protege y realza el metal.</p></div>
+    <div class="tl-step"><span class="tl-index">08</span><h4>Control de calidad</h4><p>Verificación gemológica y fotográfica macro.</p></div>
+    <div class="tl-step"><span class="tl-index">09</span><h4>Empaque</h4><p>Caja de cartón oliva, estampado dorado, forro de seda arena.</p></div>
+  </div>
+</section>
+
+<!-- 04 ARTESANIA -->
+<section id="artesania">
+  <div class="grid-2">
+    <div class="reveal">
+      <div class="eyebrow">04 · Manufactura</div>
+      <h2 class="title serif">Historia artesanal</h2>
+      <p class="lede">Modelado, fundición, soldadura, engaste y acabado — cada paso ejecutado a mano por orfebres colombianos con años de oficio.</p>
+      <div class="fact-row">
+        <div class="fact"><div class="num serif">38h</div><div class="lab">Tiempo de manufactura</div></div>
+        <div class="fact"><div class="num serif">Cera perdida</div><div class="lab">Técnica de fundición</div></div>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="video-card">
+        <div class="play-btn"></div>
+        <span class="video-caption mono">02:14 · PROCESO ARTESANAL — TALLER TERRAE</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 CERTIFICADO -->
+<section id="certificado">
+  <div class="reveal">
+    <div class="eyebrow">05 · Autenticidad</div>
+    <h2 class="title serif">Certificado digital</h2>
+  </div>
+  <div class="certificate reveal">
+    <div class="cert-head">
+      <div>
+        <div class="serif" style="font-size:1.4rem; color:var(--paper);">Certificado de Autenticidad</div>
+        <div class="cert-id mono">N.º TR-2026-00842</div>
+      </div>
+      <div style="width:52px; height:52px; border:1px solid var(--gold); transform:rotate(45deg); display:flex; align-items:center; justify-content:center;"><div style="width:12px;height:12px;background:var(--emerald-bright); transform:rotate(-45deg);"></div></div>
+    </div>
+    <div class="cert-grid">
+      <div class="cert-field"><div class="k">Gema</div><div class="v">Esmeralda colombiana natural</div></div>
+      <div class="cert-field"><div class="k">Origen</div><div class="v">Muzo, Boyacá</div></div>
+      <div class="cert-field"><div class="k">Peso</div><div class="v">1.28 ct</div></div>
+      <div class="cert-field"><div class="k">Metal</div><div class="v">Plata 950</div></div>
+      <div class="cert-field"><div class="k">Dimensiones</div><div class="v">6.8 × 5.1 × 3.4 mm</div></div>
+      <div class="cert-field"><div class="k">Fecha de emisión</div><div class="v">14 julio 2026</div></div>
+      <div class="cert-field"><div class="k">Estado</div><div class="v" style="color:var(--emerald-bright);">Verificado</div></div>
+      <div class="cert-field"><div class="k">Firma digital</div><div class="v">EmeraldChain Labs</div></div>
+    </div>
+    <div class="hash-block">SHA-256 · 7f3a9c1e2b6d4f80a5c3e9b1d7f2a4c6e8b0d3f5a7c9e1b3d5f7a9c1e3b5d7f9</div>
+    <div class="cert-actions">
+      <button class="ghost-btn">Descargar PDF</button>
+      <button class="ghost-btn">Ver en blockchain</button>
+    </div>
+  </div>
+</section>
+
+<!-- 06 TRAZABILIDAD -->
+<section id="trazabilidad">
+  <div class="reveal">
+    <div class="eyebrow">06 · Recorrido</div>
+    <h2 class="title serif">Trazabilidad completa</h2>
+    <p class="lede">De la mina a tus manos, cada movimiento de tu joya quedó registrado.</p>
+  </div>
+  <div class="trace-line reveal">
+    <div class="trace-node verified">
+      <h4>Extracción</h4>
+      <div class="trace-meta"><span>03 mar 2026</span><span>Mina El Cíelo, Muzo</span><span class="mono">hash: 8a2f...c91</span></div>
+    </div>
+    <div class="trace-node verified">
+      <h4>Clasificación gemológica</h4>
+      <div class="trace-meta"><span>11 mar 2026</span><span>Laboratorio EmLab, Bogotá</span><span class="mono">hash: 3e7d...44b</span></div>
+    </div>
+    <div class="trace-node verified">
+      <h4>Producción y engaste</h4>
+      <div class="trace-meta"><span>02 may 2026</span><span>Taller Terrae, Cali</span><span class="mono">hash: f19a...0c2</span></div>
+    </div>
+    <div class="trace-node verified">
+      <h4>Control de calidad</h4>
+      <div class="trace-meta"><span>28 jun 2026</span><span>EmLab QA</span><span class="mono">hash: 6b4e...781</span></div>
+    </div>
+    <div class="trace-node">
+      <h4>Entrega al cliente</h4>
+      <div class="trace-meta"><span>Pendiente de escaneo</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 BLOCKCHAIN -->
+<section id="blockchain">
+  <div class="grid-2">
+    <div class="reveal">
+      <div class="eyebrow">07 · Verificación</div>
+      <h2 class="title serif">Respaldo en blockchain</h2>
+      <p class="lede">Cada certificado se ancla de forma inmutable en la red Polygon. Nadie puede alterar el origen, la fecha o la identidad de tu esmeralda.</p>
+    </div>
+    <div class="reveal">
+      <div class="chain-card">
+        <div class="chain-row"><span class="k">Red</span><span class="v">Polygon Mainnet</span></div>
+        <div class="chain-row"><span class="k">Wallet emisor</span><span class="v">0x71...4dCe</span></div>
+        <div class="chain-row"><span class="k">Fecha de anclaje</span><span class="v">28 jun 2026 · 14:02 UTC</span></div>
+        <div class="chain-row"><span class="k">Documento IPFS</span><span class="v">ipfs://bafybei...gm3q</span></div>
+        <button class="verify-btn" id="verifyBtn"><span class="dot-status"></span> Verificar autenticidad</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 MINERIA -->
+<section id="mineria">
+  <div class="reveal">
+    <div class="eyebrow">08 · Impacto</div>
+    <h2 class="title serif">Minería responsable</h2>
+    <p class="lede">Un compromiso con las comunidades y el territorio que hace posible cada piedra.</p>
+  </div>
+  <div class="reveal" style="margin-top:20px;">
+    <div class="video-card" style="max-width:640px;">
+      <div class="play-btn"></div>
+      <span class="video-caption mono">02:47 · MINERÍA RESPONSABLE EN BOYACÁ</span>
+    </div>
+  </div>
+  <div class="fact-row reveal">
+    <div class="fact"><div class="num serif">100%</div><div class="lab">Minería legal certificada</div></div>
+    <div class="fact"><div class="num serif">+40</div><div class="lab">Familias vinculadas</div></div>
+    <div class="fact"><div class="num serif">Restauración</div><div class="lab">Programas de suelo activo</div></div>
+  </div>
+</section>
+
+<!-- 09 SENSORIAL -->
+<section id="sensorial">
+  <div class="reveal">
+    <div class="eyebrow">09 · Los sentidos</div>
+    <h2 class="title serif">Experiencia sensorial Terrae</h2>
+    <p class="lede">El empaque no termina en la caja. La semilla que lo acompaña y la tarjeta de nogal grabada con los Andes son parte del ritual de descubrimiento.</p>
+  </div>
+  <div class="notes reveal">
+    <div class="note-col"><div class="lab">Notas de salida</div><ul><li>Tierra húmeda</li><li>Hoja verde</li></ul></div>
+    <div class="note-col"><div class="lab">Notas de corazón</div><ul><li>Musgo andino</li><li>Flor de café</li></ul></div>
+    <div class="note-col"><div class="lab">Notas de fondo</div><ul><li>Nogal americano</li><li>Ámbar suave</li></ul></div>
+  </div>
+</section>
+
+<!-- 10 CONSERVACION -->
+<section id="conservacion">
+  <div class="reveal">
+    <div class="eyebrow">10 · Cuidado</div>
+    <h2 class="title serif">Conservación</h2>
+  </div>
+  <div class="care-grid reveal">
+    <div class="care-item"><h4>Limpieza</h4><p>Agua tibia y jabón neutro. Evita ultrasonido: la esmeralda es sensible a impactos térmicos.</p></div>
+    <div class="care-item"><h4>Almacenamiento</h4><p>Guarda tu joya por separado, envuelta en tela suave, lejos de otras piedras.</p></div>
+    <div class="care-item"><h4>Mantenimiento</h4><p>Revisión anual gratuita del engaste en cualquier taller autorizado Terrae.</p></div>
+    <div class="care-item"><h4>Garantía</h4><p>2 años contra defectos de fabricación en metal y engaste.</p></div>
+  </div>
+</section>
+
+<!-- 11 COMUNIDAD -->
+<section id="comunidad">
+  <div class="reveal">
+    <div class="eyebrow" style="justify-content:center;">11 · Terrae</div>
+    <h2 class="title serif">Únete a la comunidad Terrae</h2>
+    <p class="lede" style="margin:0 auto;">Registra tu joya y desbloquea acceso a futuras colecciones, certificaciones y beneficios exclusivos.</p>
+    <div class="perk-row">
+      <div class="perk"><div class="glyph">R</div><p>Registra tu joya y protege su historial</p></div>
+      <div class="perk"><div class="glyph">L</div><p>Acceso anticipado a lanzamientos</p></div>
+      <div class="perk"><div class="glyph">F</div><p>Programa de fidelidad Terrae</p></div>
+    </div>
+    <button class="cta-btn" style="margin-top:50px;">Registrar mi joya →</button>
+  </div>
+</section>
+
+<footer>
+  <span class="wordmark">TERRAE</span>
+  Lo que la tierra esconde, Terrae lo revela.<br>
+  © 2026 Terrae · EmJoy SAS
+</footer>
+
+<script>
+  // TOC toggle
+  const tocBtn = document.getElementById('tocBtn');
+  const toc = document.getElementById('toc');
+  tocBtn.addEventListener('click', ()=> toc.classList.toggle('open'));
+  document.querySelectorAll('.tocLink').forEach(a=>{
+    a.addEventListener('click', ()=> toc.classList.remove('open'));
+  });
+
+  // Reveal on scroll
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); } });
+  }, {threshold:0.15});
+  revealEls.forEach(el=> io.observe(el));
+
+  // Verify button interaction
+  const verifyBtn = document.getElementById('verifyBtn');
+  verifyBtn.addEventListener('click', ()=>{
+    verifyBtn.innerHTML = '✓ Verificado en Polygon';
+    verifyBtn.classList.add('checked');
+  });
+</script>
+
+</body>
+</html>

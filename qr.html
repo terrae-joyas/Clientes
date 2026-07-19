@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terrae — Prototipo QR</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --walnut:#4a3324; --emerald:#0b5f42; --emerald-bright:#14805a;
+    --gold:#b6924f; --gold-soft:#c9ab74; --paper:#ece6d9; --paper-dim:#ddd4c1;
+    --bg:#14140f; --text-dim:#a89f8c; --line:rgba(182,146,79,0.22);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:radial-gradient(ellipse at 30% 10%, rgba(11,95,66,0.25), transparent 55%), var(--bg);
+    color:var(--paper); font-family:'Jost',sans-serif; font-weight:300;
+    min-height:100vh; padding:70px 6vw 60px;
+  }
+  .serif{font-family:'Cormorant Garamond',serif;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  header{text-align:center; margin-bottom:60px;}
+  header .wordmark{font-family:'Cormorant Garamond',serif; letter-spacing:0.35em; text-transform:uppercase; font-size:1.2rem; color:var(--paper-dim);}
+  header h1{font-size:clamp(1.8rem,4vw,2.8rem); margin-top:18px; font-weight:400;}
+  header p{color:var(--text-dim); margin-top:10px; font-size:0.95rem;}
+
+  .cards{display:flex; gap:40px; flex-wrap:wrap; justify-content:center; max-width:1100px; margin:0 auto;}
+  .card{
+    flex:1 1 420px; max-width:480px; border:1px solid var(--line); border-radius:12px;
+    padding:36px; background:linear-gradient(160deg, rgba(182,146,79,0.05), transparent 60%);
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+  }
+  .tag{font-family:'JetBrains Mono',monospace; font-size:0.68rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold-soft); margin-bottom:14px;}
+  .card h2{font-family:'Cormorant Garamond',serif; font-size:1.6rem; margin-bottom:10px; font-weight:500;}
+  .card .desc{font-size:0.85rem; color:var(--text-dim); line-height:1.6; margin-bottom:26px;}
+
+  .qr-frame{
+    background:var(--paper); padding:18px; border-radius:8px; position:relative;
+    box-shadow:0 0 0 1px var(--gold), 0 20px 50px -20px rgba(0,0,0,0.6);
+  }
+  .qr-frame::before{
+    content:''; position:absolute; inset:-1px; border-radius:8px; pointer-events:none;
+  }
+  #qrMain, #qrCert{display:flex; align-items:center; justify-content:center;}
+
+  .url-box{
+    margin-top:20px; width:100%; padding:12px 16px; border:1px solid var(--line); border-radius:6px;
+    font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--emerald-bright);
+    word-break:break-all; background:rgba(0,0,0,0.25);
+  }
+  .actions{display:flex; gap:12px; margin-top:20px; flex-wrap:wrap; justify-content:center;}
+  .btn{
+    border:1px solid var(--gold); background:none; color:var(--paper);
+    padding:11px 22px; border-radius:999px; font-size:0.75rem; letter-spacing:0.1em;
+    text-transform:uppercase; cursor:pointer; transition:.3s;
+  }
+  .btn:hover{background:var(--gold); color:#14140f;}
+  .btn.secondary{border-color:var(--line); color:var(--text-dim);}
+  .btn.secondary:hover{border-color:var(--gold-soft); color:var(--gold-soft); background:none;}
+
+  .note{
+    max-width:760px; margin:60px auto 0; padding:26px 30px; border-left:2px solid var(--gold);
+    background:rgba(182,146,79,0.05); border-radius:0 8px 8px 0; font-size:0.85rem; color:var(--paper-dim); line-height:1.7;
+  }
+  .note strong{color:var(--gold-soft); font-weight:500;}
+  .note code{font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--emerald-bright);}
+
+  .card-plate{
+    margin-bottom:24px; width:100%; padding:14px; border:1px dashed var(--line); border-radius:6px;
+    display:flex; align-items:center; justify-content:center; gap:10px; font-size:0.7rem; color:var(--text-dim);
+  }
+  .card-plate .icon{width:8px;height:8px;border-radius:50%;background:var(--emerald-bright);}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="wordmark">Terrae</span>
+  <h1 class="serif">Prototipo de códigos QR</h1>
+  <p>Grabados sobre la tarjeta de nogal americano dentro del empaque · pieza N.º TR-2026-00842</p>
+</header>
+
+<div class="cards">
+  <!-- QR PRINCIPAL -->
+  <div class="card">
+    <div class="tag">QR Principal · Tarjeta de nogal</div>
+    <h2 class="serif">Experiencia de la joya</h2>
+    <div class="desc">Abre la experiencia digital completa: historia, origen, proceso, artesanía y certificado.</div>
+    <div class="qr-frame"><div id="qrMain"></div></div>
+    <div class="url-box" id="urlMain"></div>
+    <div class="actions">
+      <button class="btn" onclick="download('qrMain','terrae-qr-principal.png')">Descargar PNG</button>
+      <a class="btn secondary" href="index.html" target="_blank">Abrir experiencia (local)</a>
+    </div>
+  </div>
+
+  <!-- QR SECUNDARIO -->
+  <div class="card">
+    <div class="tag">QR Secundario · Certificado</div>
+    <h2 class="serif">Verificación del certificado</h2>
+    <div class="desc">Enlace directo al certificado digital y su verificación en blockchain (sección 5 y 7 de la experiencia).</div>
+    <div class="qr-frame"><div id="qrCert"></div></div>
+    <div class="url-box" id="urlCert"></div>
+    <div class="actions">
+      <button class="btn" onclick="download('qrCert','terrae-qr-certificado.png')">Descargar PNG</button>
+      <a class="btn secondary" href="index.html#certificado" target="_blank">Abrir certificado (local)</a>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <strong>Nota de implementación —</strong> estos QR codifican URLs de ejemplo (<code>terrae.co</code>) porque la experiencia aún no está desplegada en un dominio público. Cuando publiques <code>index.html</code> en Vercel, Netlify o tu propio hosting, reemplaza las dos constantes al inicio del script (<code>URL_PRINCIPAL</code> y <code>URL_CERTIFICADO</code>) por las URLs reales — el diseño y el flujo del QR no cambian. El botón "Abrir (local)" te permite probar la navegación real de la experiencia mientras tanto. Para producción, considera generar cada QR dinámicamente desde tu backend con el ID único de cada pieza (<code>/pieza/{id}</code> y <code>/pieza/{id}/certificado</code>), como está previsto en la arquitectura de EmeraldChain.
+</div>
+
+<script>
+  // ---- Configuración: reemplazar por URLs reales al desplegar ----
+  const PIECE_ID = "TR-2026-00842";
+  const URL_PRINCIPAL = `https://terrae.co/pieza/${PIECE_ID}`;
+  const URL_CERTIFICADO = `https://terrae.co/pieza/${PIECE_ID}/certificado`;
+
+  document.getElementById('urlMain').textContent = URL_PRINCIPAL;
+  document.getElementById('urlCert').textContent = URL_CERTIFICADO;
+
+  new QRCode(document.getElementById("qrMain"), {
+    text: URL_PRINCIPAL,
+    width: 220, height: 220,
+    colorDark: "#14140f",
+    colorLight: "#ece6d9",
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  new QRCode(document.getElementById("qrCert"), {
+    text: URL_CERTIFICADO,
+    width: 220, height: 220,
+    colorDark: "#0b5f42",
+    colorLight: "#ece6d9",
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  function download(containerId, filename){
+    const canvas = document.querySelector(`#${containerId} canvas`);
+    if(!canvas){ alert('El QR aún se está generando, intenta de nuevo en un segundo.'); return; }
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+</script>
+
+</body>
+</html>
